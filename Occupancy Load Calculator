@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Occupant Load QuickCalc Pro</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #b91c1c;
+      --primary-dark: #7f1d1d;
+      --border: #d1d5db;
+      --soft: #f9fafb;
+      --warning-bg: #fffbeb;
+      --warning-border: #fde68a;
+      --warning-text: #92400e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 24px 16px;
+      text-align: center;
+    }
+
+    header h1 { margin: 0; font-size: 1.8rem; }
+    header p { margin: 8px 0 0; opacity: 0.95; }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    h2 { margin: 0 0 12px; font-size: 1.25rem; }
+    h3 { margin: 14px 0 8px; font-size: 1rem; }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 14px;
+      background: white;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 700px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+      .grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      background: var(--primary);
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    button:hover { background: var(--primary-dark); }
+
+    .secondary { background: #374151; }
+    .secondary:hover { background: #111827; }
+    .small-btn { padding: 9px 10px; font-size: 0.9rem; }
+
+    .result {
+      text-align: center;
+      padding: 18px;
+      border-radius: 16px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+
+    .result-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 4px 0;
+    }
+
+    .small { color: var(--muted); font-size: 0.92rem; }
+
+    .formula {
+      background: var(--soft);
+      border: 1px dashed var(--border);
+      padding: 12px;
+      border-radius: 12px;
+      font-family: Consolas, monospace;
+      margin-top: 12px;
+      overflow-wrap: break-word;
+    }
+
+    .warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    .output-box {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    th { background: #f3f4f6; }
+
+    .sign-box {
+      display: none;
+      border: 4px solid #111827;
+      background: white;
+      color: #111827;
+      text-align: center;
+      padding: 28px 16px;
+      margin-top: 16px;
+    }
+
+    .sign-box h2 { font-size: 2rem; margin: 0 0 12px; }
+    .sign-box .sign-number { font-size: 4.2rem; font-weight: 900; color: var(--primary); }
+    .dept-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 18px;
+    }
+
+    @media print {
+      body { background: white; }
+      header, .no-print, .card:not(.printable) { display: none; }
+      main { max-width: none; padding: 0; }
+      .card { box-shadow: none; border: none; }
+      .sign-box { display: block !important; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Occupant Load QuickCalc Pro</h1>
+    <p>Occupant load, fixed seating, exits, printable sign, and saved inspection notes</p>
+  </header>
+
+  <main>
+    <section class="card no-print">
+      <h2>Main Occupant Load Calculator</h2>
+      <div class="grid two">
+        <div>
+          <label for="deptName">Department Name for Sign</label>
+          <input id="deptName" type="text" value="DeRidder Fire Department" oninput="calculateAll()" />
+        </div>
+        <div>
+          <label for="roomName">Room / Space Name</label>
+          <input id="roomName" type="text" placeholder="Example: Fellowship Hall, Classroom 1, Dining Area" oninput="calculateAll()" />
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div>
+          <label for="useType">Occupancy / Use</label>
+          <select id="useType" onchange="setFactorFromUse()">
+            <option value="">Select a use...</option>
+            <option value="7|net|Assembly, concentrated use without fixed seats">Assembly, concentrated, without fixed seats</option>
+            <option value="15|net|Assembly, less concentrated, tables and chairs">Assembly, tables and chairs</option>
+            <option value="5|net|Assembly, standing space">Assembly, standing space</option>
+            <option value="50|gross|Assembly, exercise room">Assembly, exercise room</option>
+            <option value="100|gross|Assembly, swimming pool deck">Assembly, swimming pool deck</option>
+            <option value="20|net|Classroom / educational area">Classroom / educational area</option>
+            <option value="35|net|Laboratory / vocational room">Laboratory / vocational room</option>
+            <option value="50|gross|Day-care area">Day-care area</option>
+            <option value="150|gross|Business area">Business area</option>
+            <option value="100|gross|Clinic / outpatient area">Clinic / outpatient area</option>
+            <option value="30|gross|Mercantile, sales area">Mercantile, sales area</option>
+            <option value="60|gross|Mercantile, stock area">Mercantile, stock area</option>
+            <option value="200|gross|Kitchen / commercial cooking area">Kitchen / commercial cooking area</option>
+            <option value="300|gross|Storage / mechanical / equipment room">Storage / mechanical / equipment room</option>
+            <option value="100|gross|Industrial area">Industrial area</option>
+            <option value="200|gross|Residential / lodging support area">Residential / lodging support area</option>
+            <option value="custom|custom|Custom factor">Custom factor</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="area">Area in Square Feet</label>
+          <input id="area" type="number" inputmode="decimal" placeholder="Example: 1200" oninput="calculateAll()" />
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div>
+          <label for="factor">Load Factor</label>
+          <input id="factor" type="number" inputmode="decimal" placeholder="Example: 15" oninput="calculateAll()" />
+        </div>
+
+        <div>
+          <label for="areaType">Area Type</label>
+          <select id="areaType" onchange="calculateAll()">
+            <option value="gross">Gross</option>
+            <option value="net">Net</option>
+            <option value="custom">Verify with adopted code</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="notes">Inspection Notes</label>
+      <textarea id="notes" placeholder="Example: Tables and chairs layout observed. Verify final occupant load with adopted code and AHJ."></textarea>
+
+      <button onclick="calculateAll()">Calculate Occupant Load</button>
+    </section>
+
+    <section class="card no-print">
+      <h2>Fixed Seating Calculator</h2>
+      <p class="small">Use this for pews, benches, bleachers, or similar seating. Common field method is inches of seating divided by inches per person, often 18 inches per person. Verify with adopted code and AHJ.</p>
+      <div class="grid three">
+        <div>
+          <label for="seatingLength">Total Seating Length</label>
+          <input id="seatingLength" type="number" inputmode="decimal" placeholder="Example: 240" oninput="calculateFixedSeating()" />
+        </div>
+        <div>
+          <label for="seatingUnit">Unit</label>
+          <select id="seatingUnit" onchange="calculateFixedSeating()">
+            <option value="inches">Inches</option>
+            <option value="feet">Feet</option>
+          </select>
+        </div>
+        <div>
+          <label for="inchesPerPerson">Inches Per Person</label>
+          <input id="inchesPerPerson" type="number" value="18" inputmode="decimal" oninput="calculateFixedSeating()" />
+        </div>
+      </div>
+      <div class="output-box" id="fixedSeatingOutput">Fixed seating result will appear here.</div>
+      <button class="secondary" onclick="useFixedSeatingAsLoad()">Use Fixed Seating Result as Occupant Load</button>
+    </section>
+
+    <section class="card no-print">
+      <h2>Exit Capacity Helper</h2>
+      <p class="small">This is a quick aid only. Enter the occupant load and available exit width. Use the correct factor required by your adopted code.</p>
+      <div class="grid three">
+        <div>
+          <label for="exitLoad">Occupant Load</label>
+          <input id="exitLoad" type="number" inputmode="numeric" placeholder="Auto fills from main result" oninput="calculateExitCapacity()" />
+        </div>
+        <div>
+          <label for="exitFactor">Width Factor, Inches Per Person</label>
+          <select id="exitFactor" onchange="calculateExitCapacity()">
+            <option value="0.2">0.2 in/person, level components</option>
+            <option value="0.3">0.3 in/person, stairs</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div>
+          <label for="customExitFactor">Custom Factor</label>
+          <input id="customExitFactor" type="number" inputmode="decimal" placeholder="Optional" oninput="calculateExitCapacity()" />
+        </div>
+      </div>
+      <div class="grid two">
+        <div>
+          <label for="availableExitWidth">Available Total Exit Width, Inches</label>
+          <input id="availableExitWidth" type="number" inputmode="decimal" placeholder="Example: 72" oninput="calculateExitCapacity()" />
+        </div>
+        <div>
+          <label for="numberOfExits">Number of Exits Provided</label>
+          <input id="numberOfExits" type="number" inputmode="numeric" placeholder="Example: 2" oninput="calculateExitCapacity()" />
+        </div>
+      </div>
+      <div class="output-box" id="exitOutput">Exit capacity result will appear here.</div>
+    </section>
+
+    <section class="card printable">
+      <h2 class="no-print">Result</h2>
+      <div class="result">
+        <div class="small" id="spaceLabel">Calculated Occupant Load</div>
+        <div class="result-number" id="result">0</div>
+        <div id="resultDetails" class="small">Enter area and load factor to calculate.</div>
+        <div class="formula" id="formula">Formula: Area ÷ Load Factor = Occupant Load, rounded up</div>
+      </div>
+
+      <div class="warning no-print">
+        This calculator is a field aid only. Always verify the final occupant load using the locally adopted code, current NFPA/IBC provisions as applicable, Louisiana State Fire Marshal guidance, and AHJ approval.
+      </div>
+
+      <div class="sign-box" id="signBox">
+        <div class="dept-name" id="signDept">DeRidder Fire Department</div>
+        <h2>MAXIMUM OCCUPANT LOAD</h2>
+        <div class="sign-number" id="signNumber">0</div>
+        <p id="signRoom">Room / Space</p>
+        <p class="small" id="signCalc">Calculated by area and occupant load factor</p>
+      </div>
+
+      <button class="no-print" onclick="window.print()">Print Occupant Load Sign</button>
+    </section>
+
+    <section class="card no-print">
+      <h2>Saved Inspection Records</h2>
+      <p class="small">Records save only on this device and browser.</p>
+      <button onclick="saveInspection()">Save Current Inspection</button>
+      <button class="secondary" onclick="clearInspections()">Clear Saved Records</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Room</th>
+            <th>Load</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTable"></tbody>
+      </table>
+    </section>
+
+    <p class="footer-note no-print">Save this file as occupant-load-calculator.html and open it in a browser. It can also be hosted free with GitHub Pages.</p>
+  </main>
+
+  <script>
+    let currentLoad = 0;
+    let fixedSeatingLoad = 0;
+
+    function setFactorFromUse() {
+      const selected = document.getElementById('useType').value;
+      const factorInput = document.getElementById('factor');
+      const areaType = document.getElementById('areaType');
+      if (!selected) { calculateAll(); return; }
+      const [factor, type] = selected.split('|');
+      if (factor !== 'custom') {
+        factorInput.value = factor;
+        areaType.value = type;
+      } else {
+        factorInput.value = '';
+        areaType.value = 'custom';
+        factorInput.focus();
+      }
+      calculateAll();
+    }
+
+    function calculateAll() {
+      calculateLoad();
+      calculateExitCapacity();
+    }
+
+    function calculateLoad() {
+      const area = parseFloat(document.getElementById('area').value);
+      const factor = parseFloat(document.getElementById('factor').value);
+      const areaType = document.getElementById('areaType').value;
+      const roomName = document.getElementById('roomName').value.trim();
+      const deptName = document.getElementById('deptName').value.trim() || 'Fire Department';
+      const useSelect = document.getElementById('useType');
+      const useText = useSelect.options[useSelect.selectedIndex]?.text || '';
+
+      const result = document.getElementById('result');
+      const resultDetails = document.getElementById('resultDetails');
+      const formula = document.getElementById('formula');
+      const spaceLabel = document.getElementById('spaceLabel');
+      const signDept = document.getElementById('signDept');
+      const signNumber = document.getElementById('signNumber');
+      const signRoom = document.getElementById('signRoom');
+      const signCalc = document.getElementById('signCalc');
+      const signBox = document.getElementById('signBox');
+      const exitLoad = document.getElementById('exitLoad');
+
+      signDept.textContent = deptName;
+      spaceLabel.textContent = roomName || 'Calculated Occupant Load';
+      signRoom.textContent = roomName || 'Room / Space';
+
+      if (!area || !factor || area <= 0 || factor <= 0) {
+        currentLoad = 0;
+        result.textContent = '0';
+        signNumber.textContent = '0';
+        resultDetails.textContent = 'Enter area and load factor to calculate.';
+        formula.textContent = 'Formula: Area ÷ Load Factor = Occupant Load, rounded up';
+        signCalc.textContent = 'Calculated by area and occupant load factor';
+        signBox.style.display = 'none';
+        return;
+      }
+
+      currentLoad = Math.ceil(area / factor);
+      if (!exitLoad.value) exitLoad.value = currentLoad;
+      const exact = area / factor;
+      const typeLabel = areaType === 'custom' ? 'verify area type' : areaType;
+
+      result.textContent = currentLoad;
+      signNumber.textContent = currentLoad;
+      resultDetails.textContent = `${area.toLocaleString()} sq ft ÷ ${factor} ${typeLabel} = ${exact.toFixed(2)}, rounded up to ${currentLoad} occupants.`;
+      formula.textContent = `Formula: ${area.toLocaleString()} ÷ ${factor} = ${exact.toFixed(2)} → ${currentLoad}`;
+      signCalc.textContent = useText && useText !== 'Select a use...' ? `${useText} | ${area.toLocaleString()} sq ft ÷ ${factor}` : `${area.toLocaleString()} sq ft ÷ ${factor}`;
+      signBox.style.display = 'block';
+    }
+
+    function calculateFixedSeating() {
+      const length = parseFloat(document.getElementById('seatingLength').value);
+      const unit = document.getElementById('seatingUnit').value;
+      const inchesPerPerson = parseFloat(document.getElementById('inchesPerPerson').value);
+      const output = document.getElementById('fixedSeatingOutput');
+
+      if (!length || !inchesPerPerson || length <= 0 || inchesPerPerson <= 0) {
+        fixedSeatingLoad = 0;
+        output.textContent = 'Fixed seating result will appear here.';
+        return;
+      }
+
+      const totalInches = unit === 'feet' ? length * 12 : length;
+      fixedSeatingLoad = Math.floor(totalInches / inchesPerPerson);
+      output.textContent = `${totalInches.toLocaleString()} inches ÷ ${inchesPerPerson} inches/person = ${fixedSeatingLoad} persons.`;
+    }
+
+    function useFixedSeatingAsLoad() {
+      calculateFixedSeating();
+      if (fixedSeatingLoad > 0) {
+        currentLoad = fixedSeatingLoad;
+        document.getElementById('result').textContent = fixedSeatingLoad;
+        document.getElementById('signNumber').textContent = fixedSeatingLoad;
+        document.getElementById('exitLoad').value = fixedSeatingLoad;
+        document.getElementById('resultDetails').textContent = `Fixed seating occupant load used: ${fixedSeatingLoad} persons.`;
+        document.getElementById('formula').textContent = 'Formula: Total seating inches ÷ inches per person = occupant load';
+        document.getElementById('signCalc').textContent = `Fixed seating calculation: ${fixedSeatingLoad} persons`;
+        document.getElementById('signBox').style.display = 'block';
+        calculateExitCapacity();
+      }
+    }
+
+    function calculateExitCapacity() {
+      const load = parseFloat(document.getElementById('exitLoad').value || currentLoad);
+      const factorSelect = document.getElementById('exitFactor').value;
+      const customFactor = parseFloat(document.getElementById('customExitFactor').value);
+      const width = parseFloat(document.getElementById('availableExitWidth').value);
+      const exits = parseInt(document.getElementById('numberOfExits').value, 10);
+      const output = document.getElementById('exitOutput');
+
+      let factor = factorSelect === 'custom' ? customFactor : parseFloat(factorSelect);
+
+      if (!load || !factor || load <= 0 || factor <= 0) {
+        output.textContent = 'Exit capacity result will appear here.';
+        return;
+      }
+
+      const requiredWidth = load * factor;
+      let text = `Required exit width: ${load} occupants × ${factor} in/person = ${requiredWidth.toFixed(1)} inches.`;
+
+      if (width && width > 0) {
+        const capacity = Math.floor(width / factor);
+        const status = width >= requiredWidth ? 'Appears adequate by width entered.' : 'Width entered appears short. Verify layout, exits, and code requirements.';
+        text += ` Available width: ${width} inches. Estimated capacity: ${capacity} occupants. ${status}`;
+      }
+
+      if (exits && exits > 0) {
+        text += ` Number of exits entered: ${exits}. Verify required number of exits, remoteness, door swing, travel distance, and arrangement separately.`;
+      }
+
+      output.textContent = text;
+    }
+
+    function saveInspection() {
+      calculateAll();
+      const records = JSON.parse(localStorage.getItem('occupantLoadRecords') || '[]');
+      const roomName = document.getElementById('roomName').value.trim() || 'Unnamed Space';
+      const area = document.getElementById('area').value || 'N/A';
+      const factor = document.getElementById('factor').value || 'N/A';
+      const notes = document.getElementById('notes').value.trim();
+      const record = {
+        date: new Date().toLocaleString(),
+        room: roomName,
+        load: currentLoad || document.getElementById('result').textContent,
+        details: `Area: ${area} sq ft | Factor: ${factor} | Notes: ${notes || 'None'}`
+      };
+      records.unshift(record);
+      localStorage.setItem('occupantLoadRecords', JSON.stringify(records));
+      renderRecords();
+    }
+
+    function renderRecords() {
+      const records = JSON.parse(localStorage.getItem('occupantLoadRecords') || '[]');
+      const tbody = document.getElementById('recordsTable');
+      tbody.innerHTML = '';
+      if (records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">No saved records yet.</td></tr>';
+        return;
+      }
+      records.forEach(record => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${escapeHtml(record.date)}</td><td>${escapeHtml(record.room)}</td><td>${escapeHtml(String(record.load))}</td><td>${escapeHtml(record.details)}</td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    function clearInspections() {
+      if (confirm('Clear all saved inspection records on this device?')) {
+        localStorage.removeItem('occupantLoadRecords');
+        renderRecords();
+      }
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>'"]/g, function(tag) {
+        const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
+        return chars[tag] || tag;
+      });
+    }
+
+    renderRecords();
+    calculateAll();
+  </script>
+</body>
+</html>
